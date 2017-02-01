@@ -2,6 +2,7 @@ package id.sch.smktelkom_mlg.learn.recyclerview3;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
@@ -14,6 +15,7 @@ import id.sch.smktelkom_mlg.learn.recyclerview3.model.Hotel;
 
 public class InputActivity extends AppCompatActivity {
 
+    public static final String KITKAT = "kitkat";
     static final int REQUEST_IMAGE_GET = 1;
     EditText etJudul;
     EditText etDeskripsi;
@@ -23,10 +25,12 @@ public class InputActivity extends AppCompatActivity {
     Uri uriFoto;
     Hotel hotel;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_input);
+
 
         etJudul = (EditText) findViewById(R.id.editTextNama);
         etDeskripsi = (EditText) findViewById(R.id.editTextDeskripsi);
@@ -40,15 +44,14 @@ public class InputActivity extends AppCompatActivity {
                 pickPhoto();
             }
         });
-
         findViewById(R.id.buttonSimpan).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         doSave();
                     }
-                });
-
+                }
+        );
         hotel = (Hotel) getIntent().getSerializableExtra(MainActivity.HOTEL);
         if (hotel != null) {
             setTitle("Edit" + hotel.judul);
@@ -56,74 +59,33 @@ public class InputActivity extends AppCompatActivity {
         } else {
             setTitle("New Hotel");
         }
+
+
     }
 
     private void fillData() {
+
         etJudul.setText(hotel.judul);
         etDeskripsi.setText(hotel.deskripsi);
         etDetail.setText(hotel.detail);
         etLokasi.setText(hotel.lokasi);
         uriFoto = Uri.parse(hotel.foto);
         ivFoto.setImageURI(uriFoto);
+
     }
 
-    private void doSave() {
-        String judul = etJudul.getText().toString();
-        String deskripsi = etDeskripsi.getText().toString();
-        String detail = etDetail.getText().toString();
-        String lokasi = etLokasi.getText().toString();
-
-        if (isValid(judul, deskripsi, detail, lokasi, uriFoto)) {
-            hotel = new Hotel(judul, deskripsi, detail, lokasi, uriFoto.toString());
-
-            Intent intent = new Intent();
-            intent.putExtra(MainActivity.HOTEL, hotel);
-            setResult(RESULT_OK, intent);
-            finish();
-        }
-    }
-
-    private boolean isValid(String judul, String deskripsi, String detail, String lokasi, Uri uriFoto) {
-        boolean valid = true;
-        if (judul.isEmpty()) {
-            setErrorEmpty(etJudul);
-            valid = false;
-        }
-
-        if (deskripsi.isEmpty()) {
-            setErrorEmpty(etDeskripsi);
-            valid = false;
-        }
-
-        if (detail.isEmpty()) {
-            setErrorEmpty(etDetail);
-            valid = false;
-        }
-
-        if (lokasi.isEmpty()) {
-            setErrorEmpty(etLokasi);
-            valid = false;
-        }
-
-        if (uriFoto == null) {
-            Snackbar.make(ivFoto, "Foto Belum Ada", Snackbar.LENGTH_SHORT)
-                    .show();
-            valid = false;
-        }
-
-        return valid;
-    }
-
-    private void setErrorEmpty(EditText editText) {
-        editText.setError(((TextInputLayout)
-                editText.getParent()).getHint() + "Belum Diisi");
-    }
 
     private void pickPhoto() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            intent = new Intent(Intent.ACTION_GET_CONTENT);
+        } else {
+            intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+        }
         intent.setType("image/*");
-        if (intent.resolveActivity(getPackageManager()) != null)
-            startActivityForResult(intent, REQUEST_IMAGE_GET);
+        if (intent.resolveActivity(getPackageManager()) != null) ;
+        startActivityForResult(intent, REQUEST_IMAGE_GET);
     }
 
     @Override
@@ -133,5 +95,55 @@ public class InputActivity extends AppCompatActivity {
             uriFoto = data.getData();
             ivFoto.setImageURI(uriFoto);
         }
+    }
+
+    private void doSave() {
+        String judul = etJudul.getText().toString();
+        String deskripsi = etDeskripsi.getText().toString();
+        String detail = etDetail.getText().toString();
+        String lokasi = etLokasi.getText().toString();
+
+        if (isValid(judul, deskripsi, detail, lokasi, uriFoto)) {
+            hotel = new Hotel(judul, deskripsi,
+                    detail, lokasi, uriFoto.toString());
+            Intent intent = new Intent();
+            intent.putExtra(MainActivity.HOTEL, hotel);
+            setResult(RESULT_OK, intent);
+            finish();
+
+        }
+
+
+    }
+
+    private boolean isValid(String judul, String deskripsi, String detail,
+                            String lokasi, Uri uriFoto) {
+        boolean valid = true;
+        if (judul.isEmpty()) {
+            setErrorEmpty(etJudul);
+            valid = false;
+        }
+        if (deskripsi.isEmpty()) {
+            setErrorEmpty(etDeskripsi);
+            valid = false;
+        }
+        if (detail.isEmpty()) {
+            setErrorEmpty(etDetail);
+            valid = false;
+        }
+        if (lokasi.isEmpty()) {
+            setErrorEmpty(etLokasi);
+            valid = false;
+        }
+        if (uriFoto == null) {
+            Snackbar.make(ivFoto, "Foto Belum Ada", Snackbar.LENGTH_SHORT).show();
+            valid = false;
+        }
+        return valid;
+
+    }
+
+    public void setErrorEmpty(EditText editText) {
+        editText.setError(((TextInputLayout) editText.getParent()).getHint() + "Belum Diisi");
     }
 }
