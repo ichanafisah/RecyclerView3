@@ -22,9 +22,10 @@ import id.sch.smktelkom_mlg.learn.recyclerview3.model.Hotel;
 public class MainActivity extends AppCompatActivity implements HotelAdapter.IHotelAdapter {
 
 
+    public static final int REQUEST_CODE_EDIT = 99;
     public static final String HOTEL = "hotel";
     public static final int REQUEST_CODE_ADD = 88;
-
+    int itemPos;
     ArrayList<Hotel> mList = new ArrayList<>();
     HotelAdapter mAdapter;
 
@@ -105,6 +106,30 @@ public class MainActivity extends AppCompatActivity implements HotelAdapter.IHot
         startActivity(intent);
     }
 
+    @Override
+    public void doEdit(int pos) {
+        itemPos = pos;
+        Intent intent = new Intent(this, InputActivity.class);
+        intent.putExtra(HOTEL, mList.get(pos));
+        startActivityForResult(intent, REQUEST_CODE_EDIT);
+    }
+
+
+    @Override
+    public void doDelete(int pos) {
+
+    }
+
+    @Override
+    public void doFav(int pos) {
+
+    }
+
+    @Override
+    public void doShare(int pos) {
+
+    }
+
     private void goAdd() {
         startActivityForResult(new Intent(this, InputActivity.class), REQUEST_CODE_ADD);
     }
@@ -114,7 +139,8 @@ public class MainActivity extends AppCompatActivity implements HotelAdapter.IHot
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == REQUEST_CODE_ADD && resultCode == RESULT_OK) {
             Hotel hotel = (Hotel) data.getSerializableExtra(HOTEL);
-            mList.add(hotel);
+            mList.remove(itemPos);
+            mList.add(itemPos, hotel);
             mAdapter.notifyDataSetChanged();
         }
     }
